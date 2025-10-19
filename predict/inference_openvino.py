@@ -1,6 +1,7 @@
 """OpenVINO変換後のD-FINEモデルで推論するスクリプト"""
 import numpy as np
 import cv2
+from PIL import Image
 from pathlib import Path
 import json
 import sys
@@ -26,21 +27,36 @@ COCO_CLASSES = [
 ]
 
 def preprocess_image(image_path, config):
-    """画像を前処理"""
-    image = cv2.imread(str(image_path))
-    orig_h, orig_w = image.shape[:2]
+    """画像を前処理（Transformers版と完全に一致させる）"""
+    # PILで画像を読み込み（Transformers版と同じ）
+    pil_image = Image.open(str(image_path)).convert("RGB")
+    orig_w, orig_h = pil_image.size
     
-    # リサイズ
+    # リサイズ（PILを使用してTransformers版と完全一致）
     target_h = config["size"]["height"]
     target_w = config["size"]["width"]
-    resized = cv2.resize(image, (target_w, target_h))
     
-    # BGR to RGB
-    rgb = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
+    # resampleの値を取得（2=Image.BILINEAR）
+    resample_method = Image.BILINEAR  # デフォルト
+    if "resample" in config:
+        resample_value = int(config["resample"])
+        if resample_value == 0:
+            resample_method = Image.NEAREST
+        elif resample_value == 1:
+            resample_method = Image.LANCZOS
+        elif resample_value == 2:
+            resample_method = Image.BILINEAR
+        elif resample_value == 3:
+            resample_method = Image.BICUBIC
+    
+    pil_resized = pil_image.resize((target_w, target_h), resample_method)
+    
+    # numpy配列に変換
+    img_array = np.array(pil_resized, dtype=np.float32)
     
     # rescale (0-255 -> 0-1)
     rescale_factor = config.get("rescale_factor", 1.0 / 255.0)
-    img_float = rgb.astype(np.float32) * rescale_factor
+    img_float = img_array * rescale_factor
     
     # 正規化（do_normalizeがTrueの場合のみ）
     if config.get("do_normalize", False):
@@ -51,7 +67,10 @@ def preprocess_image(image_path, config):
     # CHW形式に変換してバッチ次元を追加
     input_tensor = img_float.transpose(2, 0, 1)[np.newaxis, ...]
     
-    return input_tensor, (orig_h, orig_w), image
+    # 描画用にOpenCV形式で保持
+    cv_image = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+    
+    return input_tensor, (orig_h, orig_w), cv_image
 
 def postprocess_output(logits, boxes, orig_size, threshold=0.5):
     """モデル出力を後処理"""

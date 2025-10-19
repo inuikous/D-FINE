@@ -4,6 +4,17 @@
 
 Intel CPUやGPUで最適化された高速推論が可能です。
 
+> ⚠️ **注意事項**
+> - OpenVINOモデル（`.xml`）には **`inference_openvino.py`** を使用してください
+> - Transformersモデル（`ustc-community/dfine_*_coco`）には **`inference.py`** を使用してください
+
+### クイックリファレンス
+
+| モデル形式 | 推論スクリプト | コマンド例 |
+|-----------|---------------|------------|
+| **OpenVINO** (.xml) | `inference_openvino.py` | `python predict\inference_openvino.py --model openvino_models/.../model.xml` |
+| **Transformers** | `inference.py` | `python predict\inference.py --model ustc-community/dfine_n_coco` |
+
 ---
 
 ## 📦 インストール
@@ -63,15 +74,17 @@ openvino_models/
 
 ## 🔍 ステップ2: OpenVINOモデルで推論
 
+⚠️ **重要**: OpenVINOモデル(.xml)は`inference_openvino.py`を使用してください！
+
 ### 基本的な推論
 
 ```bash
 # サンプル画像で推論
-python inference_openvino.py \
+python predict\inference_openvino.py \
     --model openvino_models/ustc-community_dfine_n_coco/model.xml
 
 # 自分の画像で推論
-python inference_openvino.py \
+python predict\inference_openvino.py \
     --model openvino_models/ustc-community_dfine_n_coco/model.xml \
     --image your_image.jpg
 ```
@@ -80,7 +93,7 @@ python inference_openvino.py \
 
 ```bash
 # 検出閾値を変更
-python inference_openvino.py \
+python predict\inference_openvino.py \
     --model openvino_models/ustc-community_dfine_n_coco/model.xml \
     --image test.jpg \
     --threshold 0.3
