@@ -1,0 +1,4 @@
+Model: ustc-community/dfine_n_coco
+Parameters: 3.8M
+Processor Path: C:\exe\D-FINE\weights\ustc-community_dfine_n_coco\processor
+Model Path: C:\exe\D-FINE\weights\ustc-community_dfine_n_coco\model

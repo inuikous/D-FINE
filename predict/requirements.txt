@@ -1,0 +1,10 @@
+torch>=2.0.0
+torchvision>=0.15.0
+opencv-python>=4.8.0
+pillow>=10.0.0
+numpy>=1.24.0
+transformers>=4.57.0
+openvino>=2024.0.0
+openvino-dev>=2024.0.0
+onnxscript
+onnx
